@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebGL Program</title>
+
+  <!--define canvas CSS -->
+  <style>
+    canvas {
+      width:100vw;
+      height: 100vh;
+      display:block;
+    }
+  </style>
+</head>
+
+<body>
+  <!--define canvas, the area that we want to draw content.
+      If you want higher resolution, you must define width and height here.
+      in my test, the default resultion is 300 x 150
+      If you don't specify the width and height, it will scale from 300x150
+      to the setting that CSS defined-->
+  <canvas id="canvas" width="2048" height="1536"></canvas>
+</body>
+
+<!--define vertex variable, and link this variable to WebGL property-->
+<!--type other than "text/javascript", browser will treat it as plain text-->
+<script id="vertex-data" type="GLSL">
+  attribute vec4 vertex_points;
+  void main(){
+    gl_Position = vertex_points;
+  }
+</script>
+
+<!--define fragment variable, and link this variable to WebGL property-->
+<script id="fragment-data" type="GLSL">
+  precision mediump float;
+  void main(){
+    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+  }
+</script>
+
+<!--main script-->
+<!--Only "<script>" outside the "<body>" can use "//" to write comment.
+    otherwise you must use HTML comment <\!----\>
+-->
+<script type="text/javascript">
+  const canvas = document.querySelector("#canvas");
+  const gl = canvas.getContext("webgl2");
+
+  //read source code of GLSL (shading language of OpenGL)
+  //The "GLSL" be treated as plain text, so it must use .text to get content
+  const vsSource = document.querySelector("#vertex-data").text;
+  const fsSource = document.querySelector("#fragment-data").text;
+
+  //compile vertex shader source code
+  const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+  gl.shaderSource(vertexShader, vsSource);
+  gl.compileShader(vertexShader);
+
+  //compile fragment shader source code
+  const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+  gl.shaderSource(fragmentShader, fsSource);
+  gl.compileShader(fragmentShader);
+
+  //link shaders to OpenGL program
+  const program = gl.createProgram();
+  gl.attachShader(program, vertexShader);
+  gl.attachShader(program, fragmentShader);
+  gl.linkProgram(program);
+
+  //start OpenGL program
+  gl.useProgram(program);
+
+  //real vertex data
+  //NDC-Normzlized Device Coordinates
+  const coordinates = [-0.7, 0.7, // first point (x,y)
+                       -0.7 , 0.0, // second point (x,y)
+                       0.7, 0]; // third point (x,y)
+
+  //create buffer for vertex data
+  const pointsBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, pointsBuffer);
+
+  console.log(gl.drawingBufferWidth);
+  console.log(gl.drawingBufferHeight);
+  console.log(gl);
+
+  //loadin vertex data to WebGL context
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coordinates), gl.STATIC_DRAW);
+
+  //assign data to OpenGL program
+  const pointsLocation = gl.getAttribLocation(program, "vertex_points");
+  let size = 2; // (x,y) components per iteration (for 2D graphic)
+  let type = gl.FLOAT;
+  let normalize = false;
+  let stride = 0; //don't skip indices between coordinate pairs
+  let offset = 0; //start at beginning of buffer
+
+  gl.vertexAttribPointer(pointsLocation, size, type, normalize, stride, offset);
+
+  //send points data to GPU
+  gl.enableVertexAttribArray(pointsLocation);
+
+  //you also can start OpenGL program here
+  //gl.useProgram(program);
+
+  //clear canvas area
+  gl.clearColor(0,0,0,0);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+
+  //draw points on the screen
+  const mode = gl.TRIANGLES;
+  const first = 0;
+  const count = 3;
+  gl.drawArrays(mode, first, count);
+
+</script>
+
+</html>
