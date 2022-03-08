@@ -4,14 +4,22 @@ function main () {
   const gl = canvas.getContext("webgl2");
 
   /*========== Define and Store the Geometry ==========*/
-  const firstSquare = [
+  const squares = [
+    //front square
     -0.3, -0.3, -0.3,
      0.3, -0.3, -0.3,
      0.3,  0.3, -0.3,
-
     -0.3, -0.3, -0.3,
     -0.3,  0.3, -0.3,
-     0.3,  0.3, -0.3
+     0.3,  0.3, -0.3,
+
+     //back square
+    -0.2, -0.2,  0.3,
+     0.4, -0.2,  0.3,
+     0.4,  0.4,  0.3,
+    -0.2, -0.2,  0.3,
+    -0.2,  0.4,  0.3,
+     0.4,  0.4,  0.3
   ];
 
   /*========== Shaders GLSL Source==========*/
@@ -27,7 +35,7 @@ function main () {
   //Fragment Shader
   const fsSource = `
     void main() {
-      gl_FragColor = vec4(1, 0, 0, 1);
+      gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
     }
   `;
 
@@ -59,7 +67,7 @@ function main () {
   //Fill data to WebGL context buffer
   const sourceBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(firstSquare), gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(squares), gl.STATIC_DRAW);
 
   //Get vertex postion of GPU program
   const posAttribPosition = gl.getAttribLocation(program, "aPosition");
@@ -76,9 +84,9 @@ function main () {
   gl.clearColor(1, 1, 1, 1);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
-  const mode = gl.LINE_LOOP;
+  const mode = gl.TRIANGLES;
   const first = 0;
-  const count = 6;
+  const count = 12;
   gl.drawArrays(mode, first, count);
 }
 
