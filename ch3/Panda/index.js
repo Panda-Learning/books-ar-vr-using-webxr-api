@@ -22,20 +22,42 @@ function main () {
      0.4,  0.4,  0.3
   ];
 
+  const squareColors = [
+    //front color
+    0.0, 0.0, 1.0, 1.0,
+    0.0, 0.0, 1.0, 1.0,
+    0.0, 0.0, 1.0, 1.0,
+    0.0, 0.0, 1.0, 1.0,
+    0.0, 0.0, 1.0, 1.0,
+    0.0, 0.0, 1.0, 1.0,
+
+    //back color
+    1.0, 0.0, 0.0, 1.0,
+    1.0, 0.0, 0.0, 1.0,
+    1.0, 0.0, 0.0, 1.0,
+    1.0, 0.0, 0.0, 1.0,
+    1.0, 0.0, 0.0, 1.0,
+    1.0, 0.0, 0.0, 1.0,
+  ];
+
   /*========== Shaders GLSL Source==========*/
   //Vertex Shader
   const vsSource = `
     attribute vec4 aPosition;
+    attribute vec4 aColor;
 
+    varying lowp vec4 vertexColor;
     void main() {
       gl_Position = aPosition;
+      vertexColor = aColor;
     }
   `;
 
   //Fragment Shader
   const fsSource = `
+    varying lowp vec4 vertexColor;
     void main() {
-      gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+      gl_FragColor = vertexColor;
     }
   `;
 
@@ -65,24 +87,38 @@ function main () {
 
   /*========== Fill data ======================== */
   //Fill data to WebGL context buffer
-  const sourceBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
+
+  //Vertex data
+  const vertexBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(squares), gl.STATIC_DRAW);
 
-  //Get vertex postion of GPU program
-  const posAttribPosition = gl.getAttribLocation(program, "aPosition");
+   //Get vertex location of GPU program
+  const posAttribLocation = gl.getAttribLocation(program, "aPosition");
 
   let size = 3;
   let type = gl.FLOAT;
   let normalize = false;
   let stride = 0;
   let offset = 0;
-  gl.vertexAttribPointer(posAttribPosition, size, type, normalize, stride, offset);
-  gl.enableVertexAttribArray(posAttribPosition);
+  gl.vertexAttribPointer(posAttribLocation, size, type, normalize, stride, offset);
+  gl.enableVertexAttribArray(posAttribLocation);
+
+  //Color data
+  const colorBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(squareColors), gl.STATIC_DRAW);
+
+  size = 4;
+  const colorAttribLocation = gl.getAttribLocation(program, "aColor");
+  gl.vertexAttribPointer(colorAttribLocation, size, type, normalize, stride, offset);
+  gl.enableVertexAttribArray(colorAttribLocation);
 
   /*========== Drawing ======================== */
   gl.clearColor(1, 1, 1, 1);
-  gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.enable(gl.DEPTH_TEST);
+  gl.depthFunc(gl.LEQUAL);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   const mode = gl.TRIANGLES;
   const first = 0;
