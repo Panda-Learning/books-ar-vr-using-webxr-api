@@ -19,17 +19,25 @@ function main () {
      0.4,  0.4,  0.3,
     -0.2, -0.2,  0.3,
     -0.2,  0.4,  0.3,
-     0.4,  0.4,  0.3
+     0.4,  0.4,  0.3,
+
+     //top square
+    -0.3,  0.3, -0.3,
+     0.3,  0.3, -0.3,
+    -0.2,  0.4,  0.3,
+     0.4,  0.4,  0.3,
+     0.3,  0.3, -0.3,
+    -0.2,  0.4,  0.3
   ];
 
   const squareColors = [
     //front color
     0.0, 0.0, 1.0, 1.0,
     0.0, 0.0, 1.0, 1.0,
-    0.6, 1.0, 1.0, 1.0,
     0.0, 0.0, 1.0, 1.0,
     0.0, 0.0, 1.0, 1.0,
-    0.6, 1.0, 1.0, 1.0,
+    0.0, 0.0, 1.0, 1.0,
+    0.0, 0.0, 1.0, 1.0,
 
     //back color
     1.0, 0.0, 0.0, 1.0,
@@ -38,6 +46,14 @@ function main () {
     1.0, 0.0, 0.0, 1.0,
     1.0, 0.0, 0.0, 1.0,
     1.0, 0.0, 0.0, 1.0,
+
+    //top color
+    0.0, 1.0, 0.0, 1.0,
+    0.0, 1.0, 0.0, 1.0,
+    0.0, 1.0, 0.0, 1.0,
+    0.0, 1.0, 0.0, 1.0,
+    0.0, 1.0, 0.0, 1.0,
+    0.0, 1.0, 0.0, 1.0
   ];
 
   /*========== Shaders GLSL Source==========*/
@@ -72,7 +88,18 @@ function main () {
 
   //Compile shader source code
   gl.compileShader(vertexShader);
+  if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+    console.log('An error occurred compiling the vertex shader: ' + gl.getShaderInfoLog(vertexShader));
+    gl.deleteShader(vertexShader);
+    return null;
+  }
+
   gl.compileShader(fragmentShader);
+  if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+    console.log('An error occurred compiling the fragment shader: ' + gl.getShaderInfoLog(fragmentShader));
+    gl.deleteShader(fragmentShader);
+    return null;
+  }
 
   //Add shaders to programe of GPU
   const program = gl.createProgram();
@@ -122,7 +149,7 @@ function main () {
 
   const mode = gl.TRIANGLES;
   const first = 0;
-  const count = 12;
+  const count = squares.length;
   gl.drawArrays(mode, first, count);
 }
 
