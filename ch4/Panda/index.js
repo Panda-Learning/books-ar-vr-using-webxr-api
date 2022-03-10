@@ -62,9 +62,10 @@ function main () {
     attribute vec4 aPosition;
     attribute vec4 aColor;
 
+    uniform mat4 uModelViewMatrix;
     varying lowp vec4 vertexColor;
     void main() {
-      gl_Position = aPosition;
+      gl_Position = uModelViewMatrix * aPosition;
       vertexColor = aColor;
     }
   `;
@@ -112,45 +113,70 @@ function main () {
   //Use linked program
   gl.useProgram(program);
 
-  /*========== Fill data ======================== */
-  //Fill data to WebGL context buffer
+  let cubeRotation = 0.0;
+  let then = 0.0;
 
-  //Vertex data
-  const vertexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(squares), gl.STATIC_DRAW);
+  function render(now){
 
-   //Get vertex location of GPU program
-  const posAttribLocation = gl.getAttribLocation(program, "aPosition");
+    now *= 0.001;
+    let deltaTime = now - then;
+    then = now;
 
-  let size = 3;
-  let type = gl.FLOAT;
-  let normalize = false;
-  let stride = 0;
-  let offset = 0;
-  gl.vertexAttribPointer(posAttribLocation, size, type, normalize, stride, offset);
-  gl.enableVertexAttribArray(posAttribLocation);
+    /*========== Fill data ======================== */
+    //Fill data to WebGL context buffer
 
-  //Color data
-  const colorBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(squareColors), gl.STATIC_DRAW);
+    //Vertex data
+    const vertexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(squares), gl.STATIC_DRAW);
 
-  size = 4;
-  const colorAttribLocation = gl.getAttribLocation(program, "aColor");
-  gl.vertexAttribPointer(colorAttribLocation, size, type, normalize, stride, offset);
-  gl.enableVertexAttribArray(colorAttribLocation);
+    //Get vertex location of GPU program
+    const posAttribLocation = gl.getAttribLocation(program, "aPosition");
 
-  /*========== Drawing ======================== */
-  gl.clearColor(1, 1, 1, 1);
-  gl.enable(gl.DEPTH_TEST);
-  gl.depthFunc(gl.LEQUAL);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    let size = 3;
+    let type = gl.FLOAT;
+    let normalize = false;
+    let stride = 0;
+    let offset = 0;
+    gl.vertexAttribPointer(posAttribLocation, size, type, normalize, stride, offset);
+    gl.enableVertexAttribArray(posAttribLocation);
 
-  const mode = gl.TRIANGLES;
-  const first = 0;
-  const count = squares.length;
-  gl.drawArrays(mode, first, count);
+    //Color data
+    const colorBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(squareColors), gl.STATIC_DRAW);
+
+    size = 4;
+    const colorAttribLocation = gl.getAttribLocation(program, "aColor");
+    gl.vertexAttribPointer(colorAttribLocation, size, type, normalize, stride, offset);
+    gl.enableVertexAttribArray(colorAttribLocation);
+
+    //Transform Matrix
+    const modelMatrixLocation = gl.getUniformLocation(program, "uModelViewMatrix");
+    const modelViewMatrix = glMatrix.mat4.create();
+
+    //mat4.translate(modelViewMatrix, modelViewMatrix, [0.0, 0.5, 0.0]);
+    glMatrix.mat4.rotate(modelViewMatrix, modelViewMatrix, cubeRotation, [0, 0, 1])
+    //glMatrix.mat4.rotateZ(modelViewMatrix, modelViewMatrix, cubeRotation);
+    gl.uniformMatrix4fv(modelMatrixLocation, false, modelViewMatrix);
+
+    /*========== Drawing ======================== */
+    gl.clearColor(1, 1, 1, 1);
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LEQUAL);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    const mode = gl.TRIANGLES;
+    const first = 0;
+    const count = squares.length / 3; // for 3 D (x,y,z)
+    gl.drawArrays(mode, first, count);
+
+    cubeRotation += deltaTime;
+
+    requestAnimationFrame(render);
+  }
+
+  requestAnimationFrame(render);
 }
 
 main();
