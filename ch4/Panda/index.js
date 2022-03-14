@@ -63,9 +63,10 @@ function main () {
     attribute vec4 aColor;
 
     uniform mat4 uModelViewMatrix;
+    uniform mat4 uProjectionMatrix;
     varying lowp vec4 vertexColor;
     void main() {
-      gl_Position = uModelViewMatrix * aPosition;
+      gl_Position = uProjectionMatrix * uModelViewMatrix * aPosition;
       vertexColor = aColor;
     }
   `;
@@ -151,13 +152,25 @@ function main () {
     gl.vertexAttribPointer(colorAttribLocation, size, type, normalize, stride, offset);
     gl.enableVertexAttribArray(colorAttribLocation);
 
+    //Projection Matrix
+    const projMatrixLocation = gl.getUniformLocation(program, "uProjectionMatrix");
+    const fieldOfView = 45 * Math.PI / 180;
+    const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+    const zNear = 0.1;
+    const zFar = 100.0;
+    const projectionMatrix = glMatrix.mat4.create();
+
+    glMatrix.mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
+    gl.uniformMatrix4fv(projMatrixLocation, false, projectionMatrix);
+
     //Transform Matrix
     const modelMatrixLocation = gl.getUniformLocation(program, "uModelViewMatrix");
     const modelViewMatrix = glMatrix.mat4.create();
 
-    //mat4.translate(modelViewMatrix, modelViewMatrix, [0.0, 0.5, 0.0]);
-    glMatrix.mat4.rotate(modelViewMatrix, modelViewMatrix, cubeRotation, [0, 0, 1])
-    //glMatrix.mat4.rotateZ(modelViewMatrix, modelViewMatrix, cubeRotation);
+    glMatrix.mat4.translate(modelViewMatrix, modelViewMatrix, [0.0, 0.0, -2.0]);
+    glMatrix.mat4.rotate(modelViewMatrix, modelViewMatrix, cubeRotation, [0, 0, 1]);
+    glMatrix.mat4.rotate(modelViewMatrix, modelViewMatrix, cubeRotation, [0, 1, 0]);
+
     gl.uniformMatrix4fv(modelMatrixLocation, false, modelViewMatrix);
 
     /*========== Drawing ======================== */
